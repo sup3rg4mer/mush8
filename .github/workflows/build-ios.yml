@@ -1,0 +1,35 @@
+name: Build Mush8 iOS IPA
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the build
+
+jobs:
+  build:
+    runs-on: macos-14 # Uses GitHub's cloud Mac runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Homebrew & Dependencies
+        run: |
+          brew install xcodegen
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.98.1
+          targets: aarch64-apple-ios
+
+      - name: Build IPA
+        run: |
+          # Runs the repo's built-in manual iOS build script
+          ./make-ios.sh --ipa
+        env:
+          FREE: 1
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mush8-iOS-IPA
+          path: build/Mush8.ipa
