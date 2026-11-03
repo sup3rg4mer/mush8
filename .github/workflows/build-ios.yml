@@ -21,16 +21,20 @@ jobs:
           toolchain: 1.98.1
           targets: aarch64-apple-ios
 
-      - name: Build IPA (Ad-Hoc Signing)
+      - name: Build and Force IPA Packaging
         run: |
-          # We pass environment variables to force Xcode to skip real signing certificates
-          export CODE_SIGN_IDENTITY=""
-          export CODE_SIGNING_REQUIRED=NO
-          export CODE_SIGNING_ALLOWED=NO
-          ./make-ios.sh --ipa
+          # Generate Xcode project via xcodegen
+          xcodegen generate
+          
+          # Build raw binary structure skipping code signature verification completely
+          xcodebuild -project Mush8.xcodeproj -scheme Mush8-iOS -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO clean build
+          
+          # Manually structure a standard iOS Payload folder to create an IPA
+          mkdir -p build/Payload
+          cp -r build/Release-iphoneos/Mush8.app build/Payload/
+          cd build && zip -r Mush8.ipa Payload/
         env:
           FREE: 1
-          TEAM: ""
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
