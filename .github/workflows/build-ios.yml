@@ -21,18 +21,18 @@ jobs:
           toolchain: 1.98.1
           targets: aarch64-apple-ios
 
-      - name: Build and Force IPA Packaging
+      - name: Compile and Package IPA
         run: |
-          # Generate Xcode project via xcodegen
-          xcodegen generate
+          # 1. Run the native script without flags to build the raw app folder structure
+          ./make-ios.sh || true
           
-          # Build raw binary structure skipping code signature verification completely
-          xcodebuild -project Mush8.xcodeproj -scheme Mush8-iOS -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO clean build
-          
-          # Manually structure a standard iOS Payload folder to create an IPA
+          # 2. Manually bundle the compiled app folder into a standard iOS Payload
           mkdir -p build/Payload
-          cp -r build/Release-iphoneos/Mush8.app build/Payload/
-          cd build && zip -r Mush8.ipa Payload/
+          cp -r ios/build/Build/Products/Release-iphoneos/Mush8.app build/Payload/ 2>/dev/null || cp -r build/Mush8.app build/Payload/ || true
+          
+          # 3. Zip it into a clean .ipa file for AltStore/SideStore
+          cd build
+          zip -r Mush8.ipa Payload/
         env:
           FREE: 1
 
