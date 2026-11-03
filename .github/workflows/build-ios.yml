@@ -1,11 +1,11 @@
 name: Build Mush8 iOS IPA
 
 on:
-  workflow_dispatch: # Allows you to manually trigger the build
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-14 # Uses GitHub's cloud Mac runner
+    runs-on: macos-14
 
     steps:
       - name: Checkout Repository
@@ -21,12 +21,16 @@ jobs:
           toolchain: 1.98.1
           targets: aarch64-apple-ios
 
-      - name: Build IPA
+      - name: Build IPA (Ad-Hoc Signing)
         run: |
-          # Runs the repo's built-in manual iOS build script
+          # We pass environment variables to force Xcode to skip real signing certificates
+          export CODE_SIGN_IDENTITY=""
+          export CODE_SIGNING_REQUIRED=NO
+          export CODE_SIGNING_ALLOWED=NO
           ./make-ios.sh --ipa
         env:
           FREE: 1
+          TEAM: ""
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
